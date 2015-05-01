@@ -1,0 +1,12 @@
+Name: DataRank
+Version: 0.0.1
+Cabal-Version: >= 1.2
+Build-Type: Simple
+License: BSD3
+Author:  Kenny Cason
+Synopsis: DataRank SDK
+Category: SDK
+
+Executable datarank
+    Main-is: DataRank.hs
+    Build-Depends: base
