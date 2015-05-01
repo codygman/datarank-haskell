@@ -94,3 +94,7 @@ main = do
     -- list first 3 comments matching theme 1 (packaging) or theme 2 (price)
     response <- comments "tide-pods" [Themes [1, 2], Limit 3] config
     print $ (responseBody response)    
+
+    -- list first 3 comments within provided polygon
+    response <- comments "tide-pods" [Polygon [(24.0,-84.0),(24.0,-104.0),(44.0,-104.0),(44.0,-84.0)], Limit 3] config
+    print $ (responseBody response)  

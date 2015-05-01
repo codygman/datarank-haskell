@@ -80,6 +80,7 @@ data FilterKey
     | Languages [String]
     | Mention String
     | Mentions [String]
+    | Polygon [(Float, Float)]
     | Province String
     | Provinces [String]
     | Query String
@@ -173,6 +174,7 @@ filterKeyToPair (Language language) = ("language", language)
 filterKeyToPair (Languages languages) = ("language", joinValues languages)
 filterKeyToPair (Mention mention) = ("mention", mention)
 filterKeyToPair (Mentions mentions) = ("mention", joinValues mentions)
+filterKeyToPair (Polygon coords) = ("polygon", showPolygon coords)
 filterKeyToPair (Province province) = ("province", province)
 filterKeyToPair (Provinces provinces) = ("province", joinValues provinces)
 filterKeyToPair (Query q) = ("q", q)
@@ -182,7 +184,7 @@ filterKeyToPair (Retailers retailers) = ("retailer", joinValues retailers)
 filterKeyToPair (Sentiment sentiment) = ("sentiment", showSentiment sentiment)
 filterKeyToPair (Sentiments sentiments) = ("sentiment", joinWithTransform sentiments showSentiment)
 filterKeyToPair (Theme themeId) = ("theme", show themeId)
-filterKeyToPair (Themes themeIds) = ("theme", joinValues $ D.map (show) themeIds)
+filterKeyToPair (Themes themeIds) = ("theme", showThemeIds themeIds)
 
 showAge :: Age -> String
 showAge Age17AndBelow = "17-"
@@ -222,6 +224,15 @@ showSentiment AnySentiment = "any"
 showSentiment NoSentiment = "none"
 showSentiment Auto = "auto"
 
+showThemeIds :: [Int] -> String
+showThemeIds themeIds = joinValues $ D.map (show) themeIds
+
+showPolygon :: [(Float, Float)] -> String
+showPolygon coords = D.intercalate "" (D.map showCoord coords)
+
+showCoord :: (Float, Float) -> String
+showCoord (lat, lon) = "(" ++ (show lat) ++ "," ++ (show lon) ++ ")"
+
 joinWithTransform :: [a] -> (a -> String) -> String
 joinWithTransform filterValues transform = joinValues $ D.map transform filterValues
 
@@ -232,7 +243,7 @@ convertSearchFilters :: [FilterKey] -> [(ByteString, Maybe ByteString)]
 convertSearchFilters searchFilters = D.map (convertParameter.filterKeyToPair) searchFilters
 
 convertParameter :: (String, String) -> (ByteString, Maybe ByteString)
-convertParameter (k,v) = (C.pack k, Just (C.pack v))
+convertParameter (k, v) = (C.pack k, Just (C.pack v))
 
 buildRequestUrl :: String -> IO(Request)
 buildRequestUrl endpoint = parseUrl (apiUrl ++ endpoint)
