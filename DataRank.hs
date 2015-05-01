@@ -13,6 +13,9 @@ module DataRank
     ,fizzleValidate
     ,findTopics
     ,findTopic
+    ,findRetailers
+    ,findThemes
+    ,findThemeCorrelations
     ,comments
     ,volume
     ,volumeDaily
@@ -52,20 +55,41 @@ data FilterKey
     | Page Int
     | Limit Int
     | Age Age
+    | Ages [Age]
     | BioQuery String
     | Country String
     | Datasource String
+    | Datasources [String]
     | DatasourceType DatasourceType
+    | DatasourceTypes [DatasourceType]
     | Gender Gender
+    | Genders [Gender]
     | GeoLat Float
     | GeoLon Float
     | GeoDistance Int
     | GeoDistanceUnits GeoDistanceUnits
     | HasGeo
     | HasBio
+    | HasImage
+    | Hashtag String
+    | Hashtags [String]
+    | HideAutoSentiment
+    | HideRetweets
+    | Hour Int
+    | Language String
+    | Languages [String]
+    | Mention String
+    | Mentions [String]
     | Province String
+    | Provinces [String]
     | Query String
+    | QueryInline String
+    | Retailer String
+    | Retailers [String]
     | Sentiment Sentiment
+    | Sentiments [Sentiment]
+    | Theme Int
+    | Themes [Int]
     deriving (Eq, Show)
 
 data DataRank = DataRank { 
@@ -74,7 +98,8 @@ data DataRank = DataRank {
                     } deriving Show
 
 data Age
-    = Age18To24
+    = Age17AndBelow
+    | Age18To24
     | Age25To34
     | Age35To44
     | Age45To54
@@ -120,25 +145,47 @@ data Sentiment
 
 filterKeyToPair :: FilterKey -> (String, String)
 filterKeyToPair (Filter k v) = (k, v)
-filterKeyToPair (Page p) = ("page", show p)
-filterKeyToPair (Limit l) = ("limit", show l)
+filterKeyToPair (Page page) = ("page", show page)
+filterKeyToPair (Limit limit) = ("limit", show limit)
 filterKeyToPair (Age age) = ("age", showAge age)
+filterKeyToPair (Ages ages) = ("age", joinWithTransform ages showAge)
 filterKeyToPair (BioQuery q) = ("q:bio", q)
 filterKeyToPair (Country country) = ("country", country)
 filterKeyToPair (Datasource datasource) = ("datasource", datasource)
+filterKeyToPair (Datasources datasources) = ("datasource", joinValues datasources)
 filterKeyToPair (DatasourceType datasourceType) = ("datasource_type", showDatasourceType datasourceType)
+filterKeyToPair (DatasourceTypes datasourceTypes) = ("datasource_type", joinWithTransform datasourceTypes showDatasourceType)
 filterKeyToPair (Gender gender) = ("gender", showGender gender)
+filterKeyToPair (Genders genders) = ("gender", joinWithTransform genders showGender)
 filterKeyToPair (GeoLat lat) = ("lat", show lat)
 filterKeyToPair (GeoLon lon) = ("lon", show lon)
 filterKeyToPair (GeoDistance distance) = ("distance", show distance)
 filterKeyToPair (GeoDistanceUnits units) = ("units", showGeoDistanceUnits units)
 filterKeyToPair HasGeo = ("has:geo", "true")
 filterKeyToPair HasBio = ("has:bio", "true")
+filterKeyToPair HasImage = ("has:image", "true")
+filterKeyToPair (Hashtag hashtag) = ("hashtag", hashtag)
+filterKeyToPair (Hashtags hashtags) = ("hashtag", joinValues hashtags)
+filterKeyToPair HideAutoSentiment = ("hide:autoSentiment", "true")
+filterKeyToPair HideRetweets = ("hide:retweets", "true")
+filterKeyToPair (Hour hour) = ("hour", show hour)
+filterKeyToPair (Language language) = ("language", language)
+filterKeyToPair (Languages languages) = ("language", joinValues languages)
+filterKeyToPair (Mention mention) = ("mention", mention)
+filterKeyToPair (Mentions mentions) = ("mention", joinValues mentions)
 filterKeyToPair (Province province) = ("province", province)
+filterKeyToPair (Provinces provinces) = ("province", joinValues provinces)
 filterKeyToPair (Query q) = ("q", q)
+filterKeyToPair (QueryInline q) = ("q:inline", q)
+filterKeyToPair (Retailer retailer) = ("retailer", retailer)
+filterKeyToPair (Retailers retailers) = ("retailer", joinValues retailers)
 filterKeyToPair (Sentiment sentiment) = ("sentiment", showSentiment sentiment)
+filterKeyToPair (Sentiments sentiments) = ("sentiment", joinWithTransform sentiments showSentiment)
+filterKeyToPair (Theme themeId) = ("theme", show themeId)
+filterKeyToPair (Themes themeIds) = ("theme", joinValues $ D.map (show) themeIds)
 
 showAge :: Age -> String
+showAge Age17AndBelow = "17-"
 showAge Age18To24 = "18-24"
 showAge Age25To34 = "25-34"
 showAge Age35To44 = "35-44"
@@ -148,7 +195,7 @@ showAge Age55AndAbove = "55+"
 showGender :: Gender -> String
 showGender Male = "male"
 showGender Female = "female"
-showGender AnyGender = "male,female"
+showGender AnyGender = joinWithTransform [Male, Female] showGender
 
 showGeoDistanceUnits :: GeoDistanceUnits -> String
 showGeoDistanceUnits METERS = "m"
@@ -174,6 +221,12 @@ showSentiment Neutral = "neutral"
 showSentiment AnySentiment = "any"
 showSentiment NoSentiment = "none"
 showSentiment Auto = "auto"
+
+joinWithTransform :: [a] -> (a -> String) -> String
+joinWithTransform filterValues transform = joinValues $ D.map transform filterValues
+
+joinValues :: [String] -> String
+joinValues values = D.intercalate "," values 
 
 convertSearchFilters :: [FilterKey] -> [(ByteString, Maybe ByteString)]
 convertSearchFilters searchFilters = D.map (convertParameter.filterKeyToPair) searchFilters
@@ -222,6 +275,18 @@ findTopics config = get "topics" [] config
  -- list details of a specific topic
 findTopic :: String -> [FilterKey] -> DataRank -> IO(Response BS.ByteString)
 findTopic slug searchFilters config = get ("topics/" ++ slug) searchFilters config
+
+ -- list details of a specific topic's themes
+findThemes :: String -> DataRank -> IO(Response BS.ByteString)
+findThemes slug config = get ("topics/" ++ slug ++ "/themes") [] config
+
+ -- list details of a specific topic's themes cross-correlations
+findThemeCorrelations :: String -> [FilterKey] -> DataRank -> IO(Response BS.ByteString)
+findThemeCorrelations slug searchFilters config = get ("topics/" ++ slug ++ "/themes/correlation") searchFilters config
+
+ -- list details of a specific topic's associated retailers
+findRetailers :: String -> DataRank -> IO(Response BS.ByteString)
+findRetailers slug config = get ("topics/" ++ slug ++ "/retailers") [] config
 
  -- list comments associated to a topic
 comments :: String -> [FilterKey] -> DataRank -> IO(Response BS.ByteString)

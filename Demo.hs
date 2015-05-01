@@ -6,7 +6,6 @@ buildConfig = newClient accessToken version
             where accessToken = "<ACCESS_TOKEN>"
                   version = "v1"
 
-
 main :: IO ()
 main = do
     let config = buildConfig  
@@ -19,6 +18,18 @@ main = do
 
     -- list details of a specific topic
     response <- findTopic "tide-pods" [] config
+    print $ (responseBody response)
+
+    -- list details of a specific topic's themes
+    response <- findThemes "tide-pods" config
+    print $ (responseBody response)
+
+    -- list details of a specific topic's theme correlations
+    response <- findThemeCorrelations "tide-pods" [] config
+    print $ (responseBody response)
+
+    -- list details of a specific topic's retailers
+    response <- findRetailers "tide-pods" config
     print $ (responseBody response)
 
     -- filter on male
@@ -48,6 +59,7 @@ main = do
     -- list first 1 positive/negative comment
     response <- comments "tide-pods" [Sentiment Positive, Limit 1] config
     print $ (responseBody response)
+
     response <- comments "tide-pods" [Sentiment Negative, Limit 1] config
     print $ (responseBody response)
 
@@ -70,3 +82,15 @@ main = do
     -- list first 3 comments within 300 miles of lat/lon 
     response <- comments "tide-pods" [GeoLat 34.1, GeoLon (-94.1), GeoDistance 300, Limit 3] config
     print $ (responseBody response)
+
+    -- list first 3 comments with hashtag #tide
+    response <- comments "tide-pods" [Hashtag "tide", Limit 3] config
+    print $ (responseBody response)    
+
+    -- list first 3 comments with hashtag #tide OR #tidepods
+    response <- comments "tide-pods" [Hashtags ["tide", "tidepods"], Limit 3] config
+    print $ (responseBody response) 
+
+    -- list first 3 comments matching theme 1 (packaging) or theme 2 (price)
+    response <- comments "tide-pods" [Themes [1, 2], Limit 3] config
+    print $ (responseBody response)    
