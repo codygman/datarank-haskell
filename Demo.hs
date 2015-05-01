@@ -3,7 +3,7 @@ import Network.HTTP.Conduit
 
 buildConfig :: DataRank
 buildConfig = newClient accessToken version
-            where accessToken = "<<YOUR ACCESS TOKEN>>"
+            where accessToken = "<ACCESS_TOKEN>"
                   version = "v1"
 
 
@@ -12,8 +12,6 @@ main = do
     let config = buildConfig  
     response <- fizzleValidate "fizzle: [Phrase (spacing=2) tide [AnyOf febreze febreeze]]" config
     print $ (responseBody response)
-
-    -- Uncomment any endpoint to test out
 
     -- list all subscribed topics
     response <- findTopics config
@@ -24,7 +22,7 @@ main = do
     print $ (responseBody response)
 
     -- filter on male
-    response <- findTopic "tide-pods" [("gender", "male")] config
+    response <- findTopic "tide-pods" [Gender Male] config
     print $ (responseBody response)
 
     -- daily reach data
@@ -35,34 +33,40 @@ main = do
     response <- volume "tide-pods" "yearly" [] config
     print $ (responseBody response)
 
-    -- list first 3 comments
-    response <- comments "tide-pods" [("limit", "3")] config
-    print $ (responseBody response)
-
-    -- list first 3 comments mentioning "love"
-    response <- comments "tide-pods" [("limit", "3"),("q", "love")] config
-    print $ (responseBody response)
-
-    -- list first 3 comments form Arkansas
-    response <- comments "tide-pods" [("limit", "3"),("province", "US-AR")] config
-    print $ (responseBody response)
-
-     -- list first 3 positive comments mentioning smell
-    response <- comments "tide-pods" [("limit", "3"),("sentiment", "positive"),("q", "smell")] config
-    print $ (responseBody response)
-
-    -- list first 3 ecommerce comments
-    response <- comments "tide-pods" [("limit", "3"),("datasource_type", "ecommerce")] config
-    print $ (responseBody response)
-
      -- show wordcloud
-    response <- wordcloud "tide-pods" [("limit", "10"),("q", "love")] config
+    response <- wordcloud "tide-pods" [Query "love", Limit 3] config
     print $ (responseBody response)
 
      -- location provinces
-    response <- locationProvinces "tide-pods" [("limit", "10"),("q", "love")] config
+    response <- locationProvinces "tide-pods" [Age Age35To44] config
     print $ (responseBody response)
 
      -- datasource types
     response <- datasourceTypes "tide-pods" [] config
+    print $ (responseBody response)
+
+    -- list first 1 positive/negative comment
+    response <- comments "tide-pods" [Sentiment Positive, Limit 1] config
+    print $ (responseBody response)
+    response <- comments "tide-pods" [Sentiment Negative, Limit 1] config
+    print $ (responseBody response)
+
+    -- list first 3 comments mentioning "love"
+    response <- comments "tide-pods" [Query "love", Limit 3] config
+    print $ (responseBody response)
+
+    -- list first 3 comments form Arkansas
+    response <- comments "tide-pods" [Province "US-AR", Limit 3] config
+    print $ (responseBody response)
+
+    -- list first 3 positive comments mentioning smell
+    response <- comments "tide-pods" [Query "smell", Sentiment Positive, Limit 3] config
+    print $ (responseBody response)
+
+    -- list first 3 ecommerce comments
+    response <- comments "tide-pods" [DatasourceType ECommerce, Limit 3] config
+    print $ (responseBody response)
+
+    -- list first 3 comments within 300 miles of lat/lon 
+    response <- comments "tide-pods" [GeoLat 34.1, GeoLon (-94.1), GeoDistance 300, Limit 3] config
     print $ (responseBody response)
