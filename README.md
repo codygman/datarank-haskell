@@ -3,21 +3,14 @@ DataRank Haskell SDK
 
 Made in memory of [Paul Hudak](http://en.wikipedia.org/wiki/Paul_Hudak) 
 
-![](https://wiki.haskell.org/File:HaskellLogoStyPreview-1.png)
+![](https://wiki.haskell.org/wikiupload/thumb/4/4a/HaskellLogoStyPreview-1.png/120px-HaskellLogoStyPreview-1.png)
 
 ## Getting Started
 This library uses the Http Conduit library version 2.1.5
 GHC is needed to build the Haskell files
 
-
-## Todo
-- Consider returning Aeson instead of ByteStrings?
-- Add the rest of the endpoints.
-
-
 ## Haskell Examples 
-After inserting you Access Token
-run ./run_demo.sh to launch the demo (located in Demo.sh)
+After inserting you Access Token run `./run_demo.sh` to launch the demo (located in Demo.sh)
 
 ```haskell
 import DataRank
@@ -87,3 +80,7 @@ main = do
     response <- datasourceTypes "tide-pods" [] config
     print $ (responseBody response)
 ```
+
+## Todo
+- Consider returning Aeson instead of ByteStrings?
+- Add the rest of the endpoints.
