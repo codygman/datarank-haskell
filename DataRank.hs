@@ -123,7 +123,7 @@ data Gender
     = Male
     | Female
     | AnyGender
-    deriving (Eq, Show, Bounded, Enum)
+    deriving (Eq, Bounded, Enum)
 
 data GeoDistanceUnits
     = METERS
@@ -156,8 +156,8 @@ filterKeyToPair (Datasource datasource) = ("datasource", datasource)
 filterKeyToPair (Datasources datasources) = ("datasource", joinValues datasources)
 filterKeyToPair (DatasourceType datasourceType) = ("datasource_type", showDatasourceType datasourceType)
 filterKeyToPair (DatasourceTypes datasourceTypes) = ("datasource_type", joinWithTransform datasourceTypes showDatasourceType)
-filterKeyToPair (Gender gender) = ("gender", showGender gender)
-filterKeyToPair (Genders genders) = ("gender", joinWithTransform genders showGender)
+filterKeyToPair (Gender gender) = ("gender", show gender)
+filterKeyToPair (Genders genders) = ("gender", joinWithTransform genders show)
 filterKeyToPair (GeoLat lat) = ("lat", show lat)
 filterKeyToPair (GeoLon lon) = ("lon", show lon)
 filterKeyToPair (GeoDistance distance) = ("distance", show distance)
@@ -194,10 +194,10 @@ showAge Age35To44 = "35-44"
 showAge Age45To54 = "45-54"
 showAge Age55AndAbove = "55+"
 
-showGender :: Gender -> String
-showGender Male = "male"
-showGender Female = "female"
-showGender AnyGender = joinWithTransform [Male, Female] showGender
+instance Show Gender where
+  show Male = "male"
+  show Female = "female"
+  show AnyGender = D.intercalate "," (D.map show [Male, Female])
 
 showGeoDistanceUnits :: GeoDistanceUnits -> String
 showGeoDistanceUnits METERS = "m"
